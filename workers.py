@@ -65,6 +65,7 @@ class InferenceWorker(QThread):
                     frame,
                     device=config.DEVICE,
                     classes=config.TARGET_CLASSES,
+                    conf=config.CONFIDENCE_THRESHOLD,
                     verbose=False
                 )
 
