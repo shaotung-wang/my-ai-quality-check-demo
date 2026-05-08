@@ -1,6 +1,6 @@
 # main_window.py
 from collections import deque
-from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy
+from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QGridLayout
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QImage, QPixmap, QFont
 
@@ -22,7 +22,10 @@ class MainWindow(QMainWindow):
         self.camera_worker = None
         self.inference_worker = None
 
-        self.setup_ui()
+        # self.setup_ui()
+
+        self.video_widgets = []  # 存放 6 个 QLabel
+        self.setup_grid_ui()
 
     def setup_ui(self):
         central_widget = QWidget()
@@ -52,6 +55,17 @@ class MainWindow(QMainWindow):
         self.btn_control.setStyleSheet("background-color: #007acc; padding: 15px; border-radius: 5px;")
         self.btn_control.clicked.connect(self.toggle_system)
         main_layout.addWidget(self.btn_control)
+
+    def setup_grid_ui(self):
+        grid_layout = QGridLayout()
+        for i in range(6):
+            label = QLabel(f"Camera {i} Waiting...")
+            label.setStyleSheet("border: 1px solid #555; background: black;")
+            label.setAlignment(Qt.AlignCenter)
+            # 2行3列布局
+            grid_layout.addWidget(label, i // 3, i % 3)
+            self.video_widgets.append(label)
+        # 将 grid_layout 加入主布局...
 
     def toggle_system(self):
         # 依据按钮文本状态来决定是“开启”还是“关闭”
@@ -116,3 +130,12 @@ class MainWindow(QMainWindow):
             self.status_label.setText("✔ OK")
             self.status_label.setStyleSheet(
                 "background-color: green; color: white; border-radius: 10px; padding: 10px;")
+
+    @Slot(list, list, list)
+    def update_batch_display(self, ids, images, ngs):
+        for i, idx in enumerate(ids):
+            label = self.video_widgets[idx]
+            label.setPixmap(QPixmap.fromImage(images[i]).scaled(label.size(), Qt.KeepAspectRatio))
+            # 更新边框颜色代表 OK/NG
+            color = "red" if ngs[i] else "green"
+            label.setStyleSheet(f"border: 4px solid {color};")
