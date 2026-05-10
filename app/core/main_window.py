@@ -1,11 +1,12 @@
-# main_window.py
+"""app.core.main_window - GUI main window moved into app.core
+"""
 from collections import deque
 from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QGridLayout
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QImage, QPixmap, QFont
 
-import config
-from workers import CameraWorker, InferenceWorker
+from app.core import config as core_config
+from app.core.workers import CameraWorker, InferenceWorker
 
 
 class MainWindow(QMainWindow):
@@ -16,7 +17,7 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("background-color: #2b2b2b; color: white;")
 
         # 核心缓冲池：连接相机采集与 AI 推理的桥梁
-        self.frame_queue = deque(maxlen=config.QUEUE_MAX_LENGTH)
+        self.frame_queue = deque(maxlen=core_config.QUEUE_MAX_LENGTH)
 
         # 声明后台 Worker（暂时不启动）
         self.camera_worker = None
@@ -139,3 +140,4 @@ class MainWindow(QMainWindow):
             # 更新边框颜色代表 OK/NG
             color = "red" if ngs[i] else "green"
             label.setStyleSheet(f"border: 4px solid {color};")
+

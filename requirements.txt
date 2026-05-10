@@ -4,5 +4,12 @@ PySide6>=6.5.0
 # 图像处理与硬件取流
 opencv-python>=4.8.0
 
-# AI 视觉大模型与推理框架 (会自动连带安装 PyTorch 等底层库)
-ultralytics>=8.0.0
+# AI 视觉大模型与推理框架
+# NOTE: ultralytics/YOLO references removed. If you later want YOLO, add it back.
+# Optional: EfficientAD 相关依赖（若使用 EfficientAD，安装对应实现与导出运行时）
+onnxruntime>=1.16.0
+timm>=0.9.0
+
+numpy
+ultralytics
+anomalib

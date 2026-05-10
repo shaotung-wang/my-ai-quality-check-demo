@@ -1,13 +1,22 @@
-# config.py
+# config for app.core
 # 假设 6 台相机的系统索引
 CAMERA_LIST = [0, 1, 2, 3, 4, 5]
 CAMERA_ID = 0  # 默认摄像头ID
-MODEL_PATH = "runs/detect/industrial_runs/metal_v1_recall_optimized/weights/best.pt"
+
+# 模型配置：支持 'efficientad'（首选）和 'yolo' 回退
+MODEL_TYPE = "efficientad"  # 'efficientad' or 'yolo'
+# 当使用 EfficientAD 时，期望为导出的模型文件（TorchScript/ONNX）或训练目录
+EFFICIENTAD_MODEL_PATH = "models/efficientad/efficientad_export.pt"
+# 当回退到 YOLO 时，使用现有的 ultralytics 权重
+YOLO_MODEL_PATH = "runs/detect/industrial_runs/metal_v1_recall_optimized/weights/best.pt"
+
+# 推理设备（在 M2 上建议使用 'mps'；可回退到 'cpu'）
 DEVICE = "mps"
 
 # 性能参数
-IMG_SIZE = 640        # 推理尺寸
-FPS_LIMIT = 10        # 每秒采样率
+IMG_SIZE = 512        # 推理输入尺寸，512 为性能/精度折中
+FPS_LIMIT = 10        # 单相机每秒采样率（目标）
+BATCH_SIZE = 8        # 推理时的 batch 大小（基于内存可调整）
 
 # === 质量检查模式配置 ===
 # 为了确保OK判定的产品100%没有瑕疵，我们采用不对称的阈值策略
@@ -34,7 +43,18 @@ MIN_DEFECT_AREA_RATIO = 0.001  # 最小缺陷面积为图像面积的0.1%
 DEFECT_CONFIRMATION_FRAMES = 1  # 1帧确认（可改为3以增加可靠性）
 
 TARGET_CLASSES = None  # 目标类别，None表示所有类别
-QUEUE_MAX_LENGTH = 10  # 队列最大长度
+QUEUE_MAX_LENGTH = 32  # 队列最大长度（增加以支撑并��摄像头）
+
+# 聚合策略（将多张图片的分数合成为轴级决策）
+# strategy: 'max'|'topk_mean'|'quantile'
+AGGREGATION_STRATEGY = 'max'
+AGG_WINDOW_SIZE = 12   # 每根轴收集的帧数窗口（可根据旋转速度调整）
+AGG_TOPK = 3           # 当 strategy='topk_mean' 时使用
+AGG_QUANTILE = 0.9     # 当 strategy='quantile' 时使用（例如 0.9 表示 90% 分位数）
+
+# 元数据字段名（如果输入流携带元数据）
+META_CAM_FIELD = 'cam'
+META_SHAFT_FIELD = 'shaft'
 
 # === 调试和日志参数 ===
 VERBOSE_MODE = True  # 启用详细日志
