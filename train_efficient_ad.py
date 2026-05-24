@@ -1,5 +1,4 @@
-import os
-from anomalib.data import MVTec
+from anomalib.data import MVTecAD
 from anomalib.models import EfficientAd
 from anomalib.engine import Engine
 
@@ -9,12 +8,11 @@ def start_training():
 
     # 1. 配置数据模块 (DataModule)
     # 自动读取指定类别下的 train/good 数据进行训练
-    datamodule = MVTec(
+    datamodule = MVTecAD(
         root="./",  # 数据集的根目录
         category="My_Metal_Project",  # 你的具体工件类别（文件夹名）
-        train_batch_size=8,  # 批次大小，可根据内存情况调大到 16 或 32
+        train_batch_size=1,
         eval_batch_size=8,
-        image_size=(256, 256),  # 强制统一输入尺寸
         num_workers=4  # 异步加载数据的线程数
     )
 
