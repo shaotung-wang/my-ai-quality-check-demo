@@ -1,4 +1,3 @@
-# ============================================
 # GUI 框架
 # ============================================
 PySide6>=6.5.0
@@ -22,11 +21,6 @@ numpy>=1.24.0
 anomalib>=1.0.0
 timm>=0.9.0
 
-# 推理框架与加速
-onnxruntime>=1.16.0
-ultralytics>=8.0.0
-
-# PyTorch（anomalib 和 ultralytics 的依赖）
-# NOTE: 可选 - 一般通过 anomalib/ultralytics 自动安装
-# torch>=2.0.0
-# torchvision>=0.15.0
+# PyTorch（anomalib 的必需依赖）
+torch>=2.0.0
+torchvision>=0.15.0
