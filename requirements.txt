@@ -1,15 +1,32 @@
+# ============================================
 # GUI 框架
+# ============================================
 PySide6>=6.5.0
 
+# ============================================
 # 图像处理与硬件取流
+# ============================================
 opencv-python>=4.8.0
+scipy>=1.10.0
+matplotlib>=3.7.0
 
-# AI 视觉大模型与推理框架
-# NOTE: ultralytics/YOLO references removed. If you later want YOLO, add it back.
-# Optional: EfficientAD 相关依赖（若使用 EfficientAD，安装对应实现与导出运行时）
-onnxruntime>=1.16.0
+# ============================================
+# 核心数据处理与数值计算
+# ============================================
+numpy>=1.24.0
+
+# ============================================
+# AI 视觉异常检测框架与推理
+# ============================================
+# EfficientAD 相关依赖（异常检测模型）
+anomalib>=1.0.0
 timm>=0.9.0
 
-numpy
-ultralytics
-anomalib
+# 推理框架与加速
+onnxruntime>=1.16.0
+ultralytics>=8.0.0
+
+# PyTorch（anomalib 和 ultralytics 的依赖）
+# NOTE: 可选 - 一般通过 anomalib/ultralytics 自动安装
+# torch>=2.0.0
+# torchvision>=0.15.0
