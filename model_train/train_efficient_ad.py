@@ -52,7 +52,7 @@ def start_training():
         max_epochs=100,  # 训练轮数。通常在 50-100 轮左右即可收敛
         accelerator="auto",  # 自动选择最佳设备（MPS/GPU/CPU）
         devices=1,  # 使用单卡/单节点计算
-        default_root_dir="./results",  # 模型权重、日志和可视化结果的保存路径
+        default_root_dir="../results",  # 模型权重、日志和可视化结果的保存路径
         # 没有验证集时不要定期评估，否则会报错
     )
 

@@ -130,7 +130,7 @@ def batch_build_efficientad_dataset(base_input_dir, base_output_dir, rotate_angl
 if __name__ == "__main__":
     # 配置你的实际路径
     INPUT_NORMAL_DIR = "./normal"  # 包含 rod1-rod7 的父目录
-    OUTPUT_DATASET_DIR = "./My_Metal_Project"  # 模型训练的目标根目录
+    OUTPUT_DATASET_DIR = "../My_Metal_Project"  # 模型训练的目标根目录
 
     # 传入你验证完全正确的黄金参数
     batch_build_efficientad_dataset(

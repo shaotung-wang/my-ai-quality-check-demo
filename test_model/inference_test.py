@@ -16,7 +16,7 @@ def test_single_patch():
     print("🚀 正在加载 EfficientAD 模型 (CPU 极速模式)...")
 
     # .pt 模型权重路径
-    MODEL_WEIGHT_PATH = "./results/weights/torch/model.pt"
+    MODEL_WEIGHT_PATH = "../results/weights/torch/model.pt"
 
     if not os.path.exists(MODEL_WEIGHT_PATH):
         print(f"❌ 找不到模型文件！请检查路径: {MODEL_WEIGHT_PATH}")
@@ -29,7 +29,8 @@ def test_single_patch():
     )
 
     # 实际的测试图路径
-    TEST_IMAGE_PATH = "./My_Metal_Project/train/good/rod1_image111_patch_00.jpg"
+    # TEST_IMAGE_PATH = "./My_Metal_Project/train/good/rod1_image111_patch_00.jpg"
+    TEST_IMAGE_PATH = "../ng/ng_test.jpg"
 
     if not os.path.exists(TEST_IMAGE_PATH):
         print(f"❌ 找不到测试图片！请检查路径: {TEST_IMAGE_PATH}")
