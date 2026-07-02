@@ -16,7 +16,7 @@ def manual_deskew_image(img, angle_deg):
 def _row_brightness(img, sigma=5):
     """对一张图按行计算平滑后的亮度投影（中间 60% 宽度，避开暗角）"""
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    h, w = gray.shape
+    _, w = gray.shape
     crop = gray[:, int(w * 0.2):int(w * 0.8)]
     row_mean = np.mean(crop, axis=1)
     return gaussian_filter1d(row_mean, sigma=sigma)
@@ -49,24 +49,24 @@ def auto_search_rotate_angle(img, angle_range=(-8.0, 8.0), step=0.2):
     return float(angles[best_idx]), angles, scores
 
 
-def find_highlight_for_test_image(image_path,
-                                  rotate_angle=None,
-                                  offset_from_peak=33,
-                                  roi_width=55,
-                                  angle_search_range=(-8.0, 8.0),
-                                  angle_search_step=0.2):
+def extract_roi_from_image(img,
+                           rotate_angle=None,
+                           angle_offset=0.0,
+                           offset_from_peak=33,
+                           roi_width=55,
+                           angle_search_range=(-8.0, 8.0),
+                           angle_search_step=0.2,
+                           flip_vertical=True):
     """
-    针对待检测工件图，自动搜索高光所在的旋转角，并定位高光上方的 ROI 条带。
-    可视化输出：
-      左上：原图（标出检测到的高光中心线倾斜方向）
-      右上：拉直后图像，红线为高光峰值 Y，绿色带为 ROI 条带
-      左下：角度-峰值锐度曲线（角度搜索过程）
-      右下：拉直后亮度的 1D 行投影
+    对输入图像自动搜索高光、拉直并截取 ROI 条带（无可视化）。
+
+    参数与 find_highlight_for_test_image 保持一致。
+    返回 dict 包含 roi_strip 及定位元信息；若 ROI 无效则返回 None。
     """
-    img = cv2.imread(image_path)
-    if img is None:
-        print(f"❌ 无法读取图片: {image_path}")
-        return None
+    # 关键修正：对待检测图做垂直翻转，对齐训练照片（高光上方为清晰区）
+    if flip_vertical:
+        img = cv2.flip(img, 0)
+        print("🔄 已对待检测图做上下翻转，以匹配训练集视角（高光上方为清晰区）")
 
     # 1. 自动搜索旋转角（除非用户已手动指定）
     if rotate_angle is None:
@@ -79,6 +79,18 @@ def find_highlight_for_test_image(image_path,
         angles, scores = None, None
         print(f"📌 使用手动指定的旋转角度: {best_angle:+.2f}°")
 
+    # 1.5 叠加人工校准偏移
+    if angle_offset != 0.0:
+        if flip_vertical:
+            # 翻转后坐标系上下镜像：正 angle_offset 表示逆时针
+            best_angle += float(angle_offset)
+            direction = "逆时针"
+        else:
+            # 未翻转：正 angle_offset 表示顺时针
+            best_angle -= float(angle_offset)
+            direction = "顺时针"
+        print(f"🔄 叠加校准偏移: {angle_offset:+.2f}°（{direction}），实际使用角度: {best_angle:+.2f}°")
+
     # 2. 用最佳角度拉直
     straight_img = manual_deskew_image(img, angle_deg=best_angle)
 
@@ -86,16 +98,32 @@ def find_highlight_for_test_image(image_path,
     row_mean_smooth = _row_brightness(straight_img)
     peak_y = int(np.argmax(row_mean_smooth))
 
-    # 4. 计算 ROI 条带（高光上方）
-    y_end = peak_y - offset_from_peak
-    y_start = y_end - roi_width
-    if y_start < 0:
-        print("⚠️ 警告: ROI 已撞到图像顶部，自动截断到 y=0")
-        y_start = 0
-    if y_end <= y_start:
-        y_end = y_start + 10
+    # 4. 计算 ROI 条带
+    if flip_vertical:
+        # 翻转后清晰区位于高光上方，与训练集一致
+        y_end = peak_y - offset_from_peak
+        y_start = y_end - roi_width
+        img_h = straight_img.shape[0]
+        if y_start < 0:
+            print(f"⚠️ 警告: ROI 已撞到图像顶部，自动截断到 y=0")
+            y_start = 0
+        if y_end <= y_start:
+            print("❌ ROI 高度无效，无法定位有效区域")
+            return None
+    else:
+        # 未翻转：清晰区位于高光下方
+        y_start = peak_y + offset_from_peak
+        y_end = y_start + roi_width
+        img_h = straight_img.shape[0]
+        if y_end > img_h:
+            print(f"⚠️ 警告: ROI 已撞到图像底部，自动截断到 y={img_h}")
+            y_end = img_h
+        if y_end <= y_start:
+            print("❌ ROI 高度无效，无法定位有效区域")
+            return None
 
-    print(f"✅ 高光峰值行: Y={peak_y}    ROI 条带: Y=[{y_start}:{y_end}] (高度 {y_end - y_start}px)")
+    direction_label = "上方" if flip_vertical else "下方"
+    print(f"✅ 高光峰值行: Y={peak_y}    ROI 条带（高光{direction_label}）: Y=[{y_start}:{y_end}] (高度 {y_end - y_start}px)")
     print("=" * 60)
     print("👉 把下面这组参数直接喂给 test_patch_builder.py:")
     print(f"     rotate_angle    = {best_angle:+.2f}")
@@ -103,16 +131,87 @@ def find_highlight_for_test_image(image_path,
     print(f"     roi_width       = {roi_width}")
     print("=" * 60)
 
+    roi_strip = straight_img[y_start:y_end, :]
+
+    return {
+        "rotate_angle": best_angle,
+        "peak_y": peak_y,
+        "y_start": y_start,
+        "y_end": y_end,
+        "offset_from_peak": offset_from_peak,
+        "roi_width": roi_width,
+        "roi_strip": roi_strip,
+        "straight_img": straight_img,
+        "processed_img": img,
+        "row_mean_smooth": row_mean_smooth,
+        "angles": angles,
+        "scores": scores,
+    }
+
+
+def find_highlight_for_test_image(image_path,
+                                  rotate_angle=None,
+                                  angle_offset=0.0,
+                                  offset_from_peak=33,
+                                  roi_width=55,
+                                  angle_search_range=(-8.0, 8.0),
+                                  angle_search_step=0.2,
+                                  flip_vertical=True):
+    """
+    针对待检测工件图，自动搜索高光所在的旋转角，并定位高光下方的 ROI 条带。
+
+    说明：
+      若 flip_vertical=True（默认），会先把待检测图上下翻转，使原图中位于
+      高光下方的清晰区域，在翻转后落入高光上方，与训练集视角保持一致。
+      可视化将基于翻转后的图像进行展示。
+
+    可视化输出：
+      左上：翻转后的原图（标出检测到的高光中心线倾斜方向）
+      右上：拉直后图像，红线为高光峰值 Y，绿色带为 ROI 条带
+      左下：角度-峰值锐度曲线（角度搜索过程）
+      右下：拉直后亮度的 1D 行投影
+    """
+    img = cv2.imread(image_path)
+    if img is None:
+        print(f"❌ 无法读取图片: {image_path}")
+        return None
+
+    result = extract_roi_from_image(
+        img,
+        rotate_angle=rotate_angle,
+        angle_offset=angle_offset,
+        offset_from_peak=offset_from_peak,
+        roi_width=roi_width,
+        angle_search_range=angle_search_range,
+        angle_search_step=angle_search_step,
+        flip_vertical=flip_vertical,
+    )
+    if result is None:
+        return None
+
+    best_angle = result["rotate_angle"]
+    peak_y = result["peak_y"]
+    y_start = result["y_start"]
+    y_end = result["y_end"]
+    offset_from_peak = result["offset_from_peak"]
+    roi_width = result["roi_width"]
+    straight_img = result["straight_img"]
+    img = result["processed_img"]
+    row_mean_smooth = result["row_mean_smooth"]
+    angles = result["angles"]
+    scores = result["scores"]
+
     # 5. 可视化
     if angles is not None:
-        fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+        _, axes = plt.subplots(2, 2, figsize=(14, 10))
     else:
-        fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+        _, axes = plt.subplots(1, 2, figsize=(14, 5))
         axes = np.array([axes, [None, None]])  # 让索引兼容
 
-    # 左上：原图 + 倾斜方向示意
+    # 左上：翻转后的原图 + 倾斜方向示意
     ax = axes[0, 0]
-    ax.set_title(f"Original (detected tilt: {best_angle:+.2f}°)")
+    title_prefix = "Flipped + " if flip_vertical else ""
+    ax.set_title(f"{title_prefix}Original (detected tilt: {best_angle:+.2f}°)")
     ax.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     h_img, w_img = img.shape[:2]
     cx, cy = w_img / 2, h_img / 2
@@ -155,34 +254,30 @@ def find_highlight_for_test_image(image_path,
     plt.tight_layout()
     plt.show()
 
-    return {
-        "rotate_angle": best_angle,
-        "peak_y": peak_y,
-        "y_start": y_start,
-        "y_end": y_end,
-        "offset_from_peak": offset_from_peak,
-        "roi_width": roi_width,
-    }
+    return result
 
 
 if __name__ == "__main__":
     # 待检测工件图路径
-    TEST_IMAGE = "./ng/ng_test.jpg"
+    TEST_IMAGE = "./all_frames/movie270_00000003.png"
 
     # 自动搜索模式（推荐）：rotate_angle 留空，让程序扫描出最佳角度
     find_highlight_for_test_image(
         TEST_IMAGE,
         rotate_angle=None,           # None = 自动搜索
+        angle_offset=2.8,            # 正数 = 在自动结果基础上再顺时针转几度
         offset_from_peak=33,         # 与训练时保持一致
         roi_width=55,                # 与训练时保持一致
         angle_search_range=(-8.0, 8.0),
         angle_search_step=0.2,
+        flip_vertical=True,          # 默认 True：翻转以对齐训练集（高光上方为清晰区）
     )
 
     # 如果想锁定一个角度手动复核，可以这样调：
     # find_highlight_for_test_image(
     #     TEST_IMAGE,
     #     rotate_angle=-2.0,
+    #     angle_offset=0.0,
     #     offset_from_peak=33,
     #     roi_width=55,
     # )
