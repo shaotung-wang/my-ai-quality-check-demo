@@ -201,8 +201,8 @@ def batch_slice_test_images(input_dir,
 
 if __name__ == "__main__":
     # ---- 单张待检测图模式 ----
-    TEST_IMAGE_PATH = "./all_frames/movie270_00000000.png"
-    OUTPUT_DIR = "./test_patches/movie270_00000000"
+    TEST_IMAGE_PATH = "./all_frames/movie270_00000003.png"
+    OUTPUT_DIR = "./test_patches/movie270_00000003"
 
     slice_test_image(
         image_path=TEST_IMAGE_PATH,

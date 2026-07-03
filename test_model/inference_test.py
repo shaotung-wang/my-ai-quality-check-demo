@@ -209,9 +209,9 @@ if __name__ == "__main__":
     # ==========================================================
     # 模式 2：批量推理 test_patch_builder.py 裁剪出的 patches 目录
     # ==========================================================
-    PATCHES_DIR = os.path.join(PROJECT_ROOT, "test_patches", "movie270_00000000", "patches")
+    PATCHES_DIR = os.path.join(PROJECT_ROOT, "test_patches", "movie270_00000003", "patches")
     MODEL_WEIGHT_PATH = os.path.join(PROJECT_ROOT, "results", "weights", "torch", "model.pt")
-    OUTPUT_DIR = os.path.join(PROJECT_ROOT, "test_patches", "movie270_00000000", "_results")
+    OUTPUT_DIR = os.path.join(PROJECT_ROOT, "test_patches", "movie270_00000003", "_results")
 
     batch_inference(
         patches_dir=PATCHES_DIR,
