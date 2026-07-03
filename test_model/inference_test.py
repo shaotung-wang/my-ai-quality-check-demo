@@ -17,11 +17,11 @@ warnings.filterwarnings("ignore", category=UserWarning, module="anomalib")
 
 
 def load_inferencer(model_weight_path, device="cpu"):
-    """加载 EfficientAD Torch 推理器"""
+    """加载 PaDiM Torch 推理器"""
     if not os.path.exists(model_weight_path):
         raise FileNotFoundError(f"❌ 找不到模型文件！请检查路径: {model_weight_path}")
 
-    print(f"🚀 正在加载 EfficientAD 模型 ({device} 模式)...")
+    print(f"🚀 正在加载 PaDiM 模型 ({device} 模式)...")
     inferencer = TorchInferencer(
         path=model_weight_path,
         device=device,
@@ -58,7 +58,7 @@ def save_result_figure(image_path, predictions, save_path):
     axes[0].axis("off")
 
     im = axes[1].imshow(heatmap, cmap="jet")
-    axes[1].set_title("EfficientAD Anomaly Heatmap")
+    axes[1].set_title("PaDiM Anomaly Heatmap")
     axes[1].axis("off")
     fig.colorbar(im, ax=axes[1], fraction=0.046, pad=0.04)
 
@@ -148,7 +148,7 @@ def batch_inference(patches_dir,
         # 保存汇总文本
         summary_path = os.path.join(output_dir, "summary.txt")
         with open(summary_path, "w", encoding="utf-8") as f:
-            f.write(f"model: {model_weight_path}\n")
+            f.write(f"model: PaDiM ({model_weight_path})\n")
             f.write(f"patches_dir: {patches_dir}\n")
             f.write(f"total_patches: {len(results)}\n")
             f.write(f"ng_patches: {ng_count}\n")
@@ -190,7 +190,7 @@ def test_single_patch_demo():
     plt.imshow(img_rgb)
 
     plt.subplot(1, 2, 2)
-    plt.title("EfficientAD Anomaly Heatmap")
+    plt.title("PaDiM Anomaly Heatmap")
     plt.imshow(heatmap, cmap="jet")
     plt.colorbar()
     plt.show()

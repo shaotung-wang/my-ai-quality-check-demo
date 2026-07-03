@@ -45,10 +45,10 @@ def process_single_image(image_path, rotate_angle, offset_from_peak, roi_width, 
     return straight_img[y_start:y_end, :]
 
 
-def batch_build_efficientad_dataset(base_input_dir, base_output_dir, rotate_angle, offset_from_peak, roi_width,
-                                    patch_size=256):
+def batch_build_dataset(base_input_dir, base_output_dir, rotate_angle, offset_from_peak, roi_width,
+                        patch_size=256):
     """
-    遍历 rod1-rod7，批量切割并组织为 EfficientAD 训练目录结构
+    遍历 rod1-rod7，批量切割并组织为 MVTec AD 标准训练目录结构（适配 PaDiM）。
     """
     # 自动创建标准 MVTec AD 训练目录：train/good
     train_good_dir = os.path.join(base_output_dir, "train", "good")
@@ -104,7 +104,7 @@ def batch_build_efficientad_dataset(base_input_dir, base_output_dir, rotate_angl
             while (x_start + window_w) <= roi_strip.shape[1]:
                 square_patch = roi_strip[:, x_start:x_start + window_w]
 
-                # 缩放到 EfficientAD 强限制的 256x256
+                # 缩放到 PaDiM 要求的 256x256
                 resized_patch = cv2.resize(square_patch, (patch_size, patch_size), interpolation=cv2.INTER_CUBIC)
 
                 # 核心：将子目录名 (如 rod1) 融入文件名，防止重名覆盖
@@ -123,7 +123,7 @@ def batch_build_efficientad_dataset(base_input_dir, base_output_dir, rotate_angl
     print(f"🎉 流水线批量执行完毕！")
     print(f"📊 成功处理原图总数: {total_images_processed} 张")
     print(f"🖼️ 最终生成 256x256 样本总数: {total_patches_generated} 张")
-    print(f"📁 EfficientAD 训练集就绪: {os.path.abspath(train_good_dir)}")
+    print(f"📁 MVTec AD 训练集就绪: {os.path.abspath(train_good_dir)}")
     print("=" * 50)
 
 
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     OUTPUT_DATASET_DIR = "../My_Metal_Project"  # 模型训练的目标根目录
 
     # 传入你验证完全正确的黄金参数
-    batch_build_efficientad_dataset(
+    batch_build_dataset(
         base_input_dir=INPUT_NORMAL_DIR,
         base_output_dir=OUTPUT_DATASET_DIR,
         rotate_angle=-2.0,
