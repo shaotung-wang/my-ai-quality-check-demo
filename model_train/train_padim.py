@@ -18,7 +18,7 @@ def start_training():
 
     # 1. 配置数据模块 (DataModule)
     # 使用 Folder 适配你的自定义文件夹结构（MVTec AD 格式）
-    data_root = "./My_Metal_Project"
+    data_root = "../batch_dataset_padim"
     if not os.path.isdir(data_root):
         raise FileNotFoundError(f"数据根目录未找到: {data_root}")
     # 当前只有 train/good，没有 test 异常样本：
@@ -26,7 +26,7 @@ def start_training():
     #   - test_split_mode="none"  跳过测试集构建
     #   - val_split_mode="from_train" 从训练集切一小部分做验证
     datamodule = Folder(
-        name="My_Metal_Project",
+        name="batch_dataset_padim",
         root=data_root,
         normal_dir="train/good",       # 训练用的正常图像
         train_batch_size=8,            # PaDiM 无 batch_size=1 限制，可适当增大
@@ -58,7 +58,7 @@ def start_training():
         max_epochs=1,               # PaDiM 无需多轮训练，1 轮即可完成特征建模
         accelerator="auto",         # 自动选择最佳设备（MPS/GPU/CPU）
         devices=1,                  # 使用单卡/单节点计算
-        default_root_dir="../results",  # 模型权重、日志和可视化结果的保存路径
+        default_root_dir="../results_padim",  # 模型权重、日志和可视化结果的保存路径
     )
 
     print("🔥 开始特征提取与高斯分布建模，请稍候...")

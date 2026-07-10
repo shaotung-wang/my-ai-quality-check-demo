@@ -259,7 +259,7 @@ def find_highlight_for_test_image(image_path,
 
 if __name__ == "__main__":
     # 待检测工件图路径
-    TEST_IMAGE = "./all_frames/movie270_00000003.png"
+    TEST_IMAGE = "./all_frames/movie270_00000000.png"
 
     # 自动搜索模式（推荐）：rotate_angle 留空，让程序扫描出最佳角度
     find_highlight_for_test_image(
