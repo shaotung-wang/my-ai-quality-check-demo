@@ -13,10 +13,10 @@ from app.core import config as core_config
 
 
 def load_sample_images(limit_per_cam=20):
-	img_glob = os.path.join('datasets', 'metal_defects', 'train', 'images', '*.jpg')
+	img_glob = os.path.join('data', 'datasets', 'padim', 'train', 'good', '*.jpg')
 	all_imgs = sorted(glob.glob(img_glob))
 	if not all_imgs:
-		print('No sample images found under datasets/metal_defects/train/images')
+		print('No sample images found under data/datasets/padim/train/good')
 		return [[] for _ in core_config.CAMERA_LIST]
 
 	cams = [[] for _ in core_config.CAMERA_LIST]

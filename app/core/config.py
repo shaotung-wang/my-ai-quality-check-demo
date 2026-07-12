@@ -6,9 +6,9 @@ CAMERA_ID = 0  # 默认摄像头ID
 # 模型配置：支持 'efficientad'（首选）和 'yolo' 回退
 MODEL_TYPE = "efficientad"  # 'efficientad' or 'yolo'
 # 当使用 EfficientAD 时，期望为导出的模型文件（TorchScript/ONNX）或训练目录
-EFFICIENTAD_MODEL_PATH = "models/efficientad/efficientad_export.pt"
+EFFICIENTAD_MODEL_PATH = "outputs/models/efficientad/v1/weights/lightning/model.ckpt"
 # 当回退到 YOLO 时，使用现有的 ultralytics 权重
-YOLO_MODEL_PATH = "runs/detect/industrial_runs/metal_v1_recall_optimized/weights/best.pt"
+YOLO_MODEL_PATH = "outputs/models/yolo/weights/best.pt"
 
 # 推理设备（在 M2 上建议使用 'mps'；可回退到 'cpu'）
 DEVICE = "mps"
