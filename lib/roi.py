@@ -4,16 +4,66 @@
 本模块合并了此前分散在 model_train/find_highlight.py 和
 test_model/find_highlight_test.py 中的重复逻辑，是唯一的高光搜索与 ROI 计算入口。
 
-关键约定：
-- 训练照片：待采集清晰区域在高光上方 → flip_vertical=False
-- 待检测照片：待采集清晰区域在高光下方 → flip_vertical=True（翻转后高光上方即为原图下方）
+关键约定（由原始文件名决定，而不是由“训练/检测”阶段决定）：
+- imageXXX：待采集清晰区域在高光上方 → flip_vertical=False
+- movieXXX_XXX：待采集清晰区域在高光下方 → flip_vertical=True（翻转后高光上方即为原图下方）
 - angle_offset：未翻转时正数 = 顺时针；翻转后正数 = 逆时针
 """
+
+import os
+import re
 
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
+
+
+# 采集端的文件名同时标识了相机视角。把规则放在这里，确保训练、
+# 离线评估和现场推理不会各自维护一套相互矛盾的 flip/角度逻辑。
+_IMAGE_NAME = re.compile(r"^image\d+$", re.IGNORECASE)
+_MOVIE_NAME = re.compile(r"^movie\d+_\d+$", re.IGNORECASE)
+
+# 以下数值保留原流程已人工校准过的角度，只是把它们绑定到正确的采集
+# 视角：imageXXX 原先在训练流程使用 -2°；movieXXX_XXX 原先在检测
+# 流程使用自动角度 + 2.8° 校准。
+IMAGE_ROTATE_ANGLE = -2.0
+IMAGE_ANGLE_OFFSET = 0.0
+MOVIE_ROTATE_ANGLE = None
+MOVIE_ANGLE_OFFSET = 2.8
+
+
+def roi_settings_for_path(image_path, *, unknown_flip_vertical=True):
+    """按原始文件名返回正确的 ROI/旋转设置。
+
+    ``imageXXX`` 的有效采集区位于高光上方，不翻转；
+    ``movieXXX_XXX`` 的有效采集区位于高光下方，先上下翻转，使两者
+    都以“高光上方”为统一坐标系裁剪。
+
+    ``unknown_flip_vertical`` 仅用于没有这两种命名的历史/NG 文件。
+    这些文件无法从名称判断来源，默认保持旧检测流程的下方采集规则。
+    """
+    stem = os.path.splitext(os.path.basename(os.fspath(image_path)))[0]
+    if _IMAGE_NAME.fullmatch(stem):
+        return {
+            "source_type": "image",
+            "flip_vertical": False,
+            "rotate_angle": IMAGE_ROTATE_ANGLE,
+            "angle_offset": IMAGE_ANGLE_OFFSET,
+        }
+    if _MOVIE_NAME.fullmatch(stem):
+        return {
+            "source_type": "movie",
+            "flip_vertical": True,
+            "rotate_angle": MOVIE_ROTATE_ANGLE,
+            "angle_offset": MOVIE_ANGLE_OFFSET,
+        }
+    return {
+        "source_type": "unknown",
+        "flip_vertical": bool(unknown_flip_vertical),
+        "rotate_angle": None,
+        "angle_offset": MOVIE_ANGLE_OFFSET if unknown_flip_vertical else 0.0,
+    }
 
 
 # ============================================================
@@ -367,7 +417,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         image_path = sys.argv[1]
     else:
-        image_path = "data/test/images/movie270_00000000.png"
+        image_path = "data/test/images/movie270_00000004.png"
 
     # 自动搜索模式
     find_highlight_for_test_image(

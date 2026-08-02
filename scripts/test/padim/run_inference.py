@@ -241,7 +241,7 @@ def batch_inference(patches_dir,
 
 
 if __name__ == "__main__":
-    PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
     MODEL_WEIGHT_PATH = os.path.join(PROJECT_ROOT, "outputs", "models", "padim", "torch", "model.pt")
     PATCHES_DIR = os.path.join(PROJECT_ROOT, "outputs", "patches",

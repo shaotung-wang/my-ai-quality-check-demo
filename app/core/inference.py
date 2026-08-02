@@ -49,7 +49,7 @@ if __name__ == "__main__":
     import cv2
 
     mi = ModelInfer()
-    img = cv2.imread('data/datasets/padim/train/good/rod1_image118_patch_37.jpg')
+    img = cv2.imread('outputs/train_intermediate/padim/train/good/rod1_image118_patch_37.jpg')
     if img is None:
         print('示例图片不存在，跳过自测')
     else:

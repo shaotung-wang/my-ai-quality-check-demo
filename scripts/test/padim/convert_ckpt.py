@@ -62,17 +62,32 @@ def convert(ckpt_path, output_path, verify=True):
     return output_path
 
 
+def find_latest_ckpt(model_root):
+    """在模型输出目录下自动查找最新的 Lightning checkpoint 文件。
+
+    anomalib Engine 保存路径格式: <root>/Padim/padim/v<N>/weights/lightning/model.ckpt
+    """
+    model_root = Path(model_root)
+    ckpts = sorted(model_root.rglob("*.ckpt"), key=lambda p: p.stat().st_mtime, reverse=True)
+    return ckpts[0] if ckpts else None
+
+
 def main():
     script_dir = Path(__file__).parent.resolve()
-    project_root = script_dir.parent.parent
+    project_root = script_dir.parent.parent.parent
+    model_root = project_root / "outputs" / "models" / "padim"
+
+    # 自动查找最新的 ckpt 文件
+    latest_ckpt = find_latest_ckpt(model_root)
+    default_ckpt = str(latest_ckpt) if latest_ckpt else str(model_root / "lightning" / "model.ckpt")
 
     parser = argparse.ArgumentParser(
         description="将 PaDiM Lightning checkpoint (.ckpt) 转换为 anomalib Torch 推理权重 (.pt)",
     )
     parser.add_argument(
         "--ckpt", type=str,
-        default=str(project_root / "outputs" / "models" / "padim" / "lightning" / "model.ckpt"),
-        help="输入的 Lightning checkpoint 路径",
+        default=default_ckpt,
+        help="输入的 Lightning checkpoint 路径（默认自动查找最新）",
     )
     parser.add_argument(
         "--output", type=str,

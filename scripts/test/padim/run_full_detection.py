@@ -25,7 +25,7 @@ import torch
 from torchvision.transforms.v2.functional import to_dtype, to_image
 from anomalib.deploy import TorchInferencer
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 sys.path.insert(0, PROJECT_ROOT)
 
 from lib.roi import extract_roi_from_image

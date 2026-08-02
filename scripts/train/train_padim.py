@@ -21,7 +21,7 @@ from anomalib.models import Padim
 from anomalib.engine import Engine
 
 
-def start_training(data_root="data/datasets/padim", output_root="outputs/models/padim"):
+def start_training(data_root="outputs/train_intermediate/padim", output_root="outputs/models/padim"):
     """启动 PaDiM 特征建模。
 
     参数：
@@ -37,9 +37,9 @@ def start_training(data_root="data/datasets/padim", output_root="outputs/models/
         name="padim",
         root=data_root,
         normal_dir="train/good",
-        train_batch_size=8,
-        eval_batch_size=8,
-        num_workers=4,
+        train_batch_size=32,
+        eval_batch_size=32,
+        num_workers=8,
         val_split_mode="from_train",
         val_split_ratio=0.1,
         test_split_mode="none",
@@ -53,10 +53,10 @@ def start_training(data_root="data/datasets/padim", output_root="outputs/models/
         n_features=None,
     )
 
-    print("⚙️ 配置硬件加速引擎...")
+    print("⚙️ 配置硬件加速引擎（CPU：MPS 不支持 PaDiM memory bank 的大张量操作）...")
     engine = Engine(
         max_epochs=1,
-        accelerator="auto",
+        accelerator="cpu",
         devices=1,
         default_root_dir=output_root,
     )
